@@ -3,6 +3,8 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from flask import Flask, request
+import os
 
 TELEGRAM_BOT_TOKEN = "7905215429:AAF-OL390x9BlYit-WAbY0miSqwkGwgqQJI"
 DGIS_API_KEY = "71a15a9d-dd13-4d5f-8181-566b38ffb284"
@@ -10,6 +12,9 @@ DGIS_API_KEY = "71a15a9d-dd13-4d5f-8181-566b38ffb284"
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
 
+app = Flask(__name__)
+
+# Асинхронная функция для поиска ближайших эвакуационных пунктов
 async def search_evacuation_points(latitude, longitude):
     search_queries = [
         "Пункт сбора, эвакуации и временного размещения населения",
@@ -38,6 +43,7 @@ async def search_evacuation_points(latitude, longitude):
 
     return "Извините, ближайший пункт эвакуации не найден."
 
+# Обработчик команды /start
 @dp.message(CommandStart())
 async def start(message: Message):
     keyboard = ReplyKeyboardMarkup(
@@ -46,6 +52,7 @@ async def start(message: Message):
     )
     await message.answer("Отправьте или прикрепите свою геолокацию, чтобы найти ближайший пункт эвакуации.", reply_markup=keyboard)
 
+# Обработчик получения геолокации
 @dp.message(lambda message: message.location is not None)
 async def handle_location(message: Message):
     latitude = message.location.latitude
@@ -53,8 +60,25 @@ async def handle_location(message: Message):
     result = await search_evacuation_points(latitude, longitude)
     await message.answer(result, parse_mode="Markdown")
 
-async def main():
-    await dp.start_polling(bot)
+# Flask обработчик для вебхука
+@app.route(f'/{TELEGRAM_BOT_TOKEN}', methods=['POST'])
+async def webhook():
+    update = types.Update(**request.json)  # Преобразуем json в объект Update
+    await dp.process_update(update)  # Обрабатываем обновление
+    return 'OK', 200
+
+# Настроим вебхук
+async def set_webhook():
+    url = f'https://your-app-url/{TELEGRAM_BOT_TOKEN}'
+    await bot.set_webhook(url)
+
+# Запуск приложения
+def run():
+    # Устанавливаем вебхук
+    asyncio.run(set_webhook())
+
+    # Запускаем Flask сервер
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    run()
