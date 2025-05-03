@@ -5,7 +5,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 
 TELEGRAM_BOT_TOKEN = "7905215429:AAGF71IDy2lqS6rQ96v9JY5H9oqeCxJtj8M"
-DGIS_API_KEY = "71a15a9d-dd13-4d5f-8181-566b38ffb284"
+DGIS_API_KEY = "14510794-de25-4a43-94d1-bc1cc433aa54"
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
