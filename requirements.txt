@@ -1,1 +1,4 @@
-﻿aiogramaiohttpasyncio
+﻿aiogram
+aiohttp
+asyncio
+Flask==2.1.2
